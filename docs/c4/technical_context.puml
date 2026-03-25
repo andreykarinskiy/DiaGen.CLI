@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Deployment>
+
+Node(pc, "Workstation") {
+    Container(diagen, "DiaGen CLI", "Python CLI")
+
+    Node(pip_cache, "pip Local Cache") {
+        Container_Ext(plugin, "DiaGen Plugin")
+    }
+
+    Node(working_dir, "Working Directory") {
+        artifact "Any Artifact" as document
+    }
+
+    Rel_R(diagen, plugin, "Загружает, выполняет", "OS.FileSystem")
+    Rel_D(plugin, document, "Создает, записывает, читает", "OS.FileSystem")
+}
+
+@enduml

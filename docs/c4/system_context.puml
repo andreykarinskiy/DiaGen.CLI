@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Context>
+SHOW_PERSON_PORTRAIT()
+
+Person(dev_team, "DevTeam")
+System(diagen, "DiaGen CLI")
+System_Ext(plugin, "DiaGen Plugin")
+System_Ext(github_releases, "GitHub Releases")
+System_Ext(pip, "pip")
+
+Rel_R(dev_team, pip, "Ищет и устанавливает плагины")
+Rel_L(dev_team, diagen, "Запускает плагины")
+Rel_D(dev_team, plugin, "Запускает плагин напрямую")
+Rel(diagen, plugin, "Запускает плагин")
+Rel(pip, plugin, "Устанавливает плагины")
+Rel(pip, github_releases, "Скачивает плагины")
+
+@enduml
