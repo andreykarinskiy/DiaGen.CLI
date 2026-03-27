@@ -1,6 +1,7 @@
-.PHONY: help install install-dev lint test check run version build clean changelog bump patch minor major release
+.PHONY: help install install-dev lint test check run version build clean changelog bump patch minor major release release-first
 
 PYTHON ?= py -3.13
+RELEASE_TYPE ?= auto
 
 help:
 	@echo "Доступные команды:"
@@ -18,7 +19,8 @@ help:
 	@echo "  make patch        - Bump patch-версии"
 	@echo "  make minor        - Bump minor-версии"
 	@echo "  make major        - Bump major-версии"
-	@echo "  make release      - Bump версии, changelog и push с тегами"
+	@echo "  make release      - SemVer release (auto|patch|minor|major) + push тегов"
+	@echo "  make release-first - Создать и отправить первый тег v0.1.0"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -64,5 +66,19 @@ major:
 	$(PYTHON) -m commitizen bump --increment MAJOR
 
 release:
+ifeq ($(RELEASE_TYPE),auto)
 	$(PYTHON) -m commitizen bump --changelog
+else ifeq ($(RELEASE_TYPE),patch)
+	$(PYTHON) -m commitizen bump --changelog --increment PATCH
+else ifeq ($(RELEASE_TYPE),minor)
+	$(PYTHON) -m commitizen bump --changelog --increment MINOR
+else ifeq ($(RELEASE_TYPE),major)
+	$(PYTHON) -m commitizen bump --changelog --increment MAJOR
+else
+	$(error RELEASE_TYPE must be one of: auto, patch, minor, major)
+endif
 	git push origin HEAD --follow-tags
+
+release-first:
+	git tag v0.1.0
+	git push origin v0.1.0
