@@ -1,4 +1,4 @@
-.PHONY: help install install-dev lint test check run version build clean changelog bump patch minor major
+.PHONY: help install install-dev lint test check run version build clean changelog bump patch minor major release
 
 PYTHON ?= py -3.13
 
@@ -18,6 +18,7 @@ help:
 	@echo "  make patch        - Bump patch-версии"
 	@echo "  make minor        - Bump minor-версии"
 	@echo "  make major        - Bump major-версии"
+	@echo "  make release      - Bump версии, changelog и push с тегами"
 
 install:
 	$(PYTHON) -m pip install -e .
@@ -61,3 +62,7 @@ minor:
 
 major:
 	$(PYTHON) -m commitizen bump --increment MAJOR
+
+release:
+	$(PYTHON) -m commitizen bump --changelog
+	git push origin HEAD --follow-tags
