@@ -1,4 +1,5 @@
 .PHONY: help install install-dev lint test check run version build clean changelog bump patch minor major release release-first
+#
 
 PYTHON ?= py -3.13
 RELEASE_TYPE ?= auto
