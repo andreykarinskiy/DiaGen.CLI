@@ -32,4 +32,12 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
+          body: |
+            ## Кратко
+            - Обновление DiaGen CLI
+            - Артефакты сборки приложены в секции Assets
+            - Подробности по изменениям добавлены в авто-сгенерированных Release Notes
+
+            ## Установка
+            - Установите нужный артефакт из секции Assets через `pip`
           generate_release_notes: true
