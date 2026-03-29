@@ -31,7 +31,7 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI
-        # TODO: Когда это будет необходимо.
+        run: echo "PyPI publishing is not configured yet."
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
