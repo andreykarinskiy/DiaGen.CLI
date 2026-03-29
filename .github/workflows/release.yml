@@ -11,7 +11,6 @@ jobs:
     permissions:
       contents: write       # для создания GitHub Release
       id-token: write       # для trusted publishing в PyPI (опционально)
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,12 +43,3 @@ jobs:
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update develop branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin develop
-          git checkout develop
-          git merge main --no-edit
-          git push origin develop
