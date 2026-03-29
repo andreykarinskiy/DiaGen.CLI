@@ -21,7 +21,7 @@ MAKE_HELPERS := $(PYTHON) scripts/make_helpers.py
 BUILD ?= $(MAKE_HELPERS) build
 
 .PHONY: help install-dev lint test build verify release \
-	check-tools check-branch check-clean check-upstream
+	check-tools check-branch check-clean check-upstream check-release-commits
 
 help:
 	@echo "Available commands:"
@@ -45,7 +45,7 @@ test:
 build: check-tools
 	$(BUILD)
 
-verify: check-tools check-branch check-clean check-upstream lint test build
+verify: check-tools check-branch check-clean check-upstream check-release-commits lint test build
 	@echo "All checks passed."
 
 release: verify
@@ -68,3 +68,6 @@ check-clean:
 
 check-upstream:
 	@$(MAKE_HELPERS) check-upstream --remote "$(REMOTE)"
+
+check-release-commits:
+	@$(MAKE_HELPERS) check-release-commits

@@ -99,6 +99,27 @@ def build(_: argparse.Namespace) -> int:
     return 0
 
 
+def check_release_commits(_: argparse.Namespace) -> int:
+    try:
+        next_version = subprocess.check_output(
+            [sys.executable, "-m", "commitizen", "bump", "--get-next"],
+            text=True,
+            stderr=subprocess.STDOUT,
+        ).strip()
+    except subprocess.CalledProcessError as error:
+        output = (error.output or "").strip()
+        if "[NO_COMMITS_TO_BUMP]" in output:
+            print("No release-eligible commits found since the latest tag.")
+            return 1
+
+        if output:
+            print(output)
+        return error.returncode
+
+    print(f"Next release version: {next_version}")
+    return 0
+
+
 def push_release_tag(args: argparse.Namespace) -> int:
     tag = _release_tag()
     subprocess.check_call(["git", "push", args.remote, tag])
@@ -157,6 +178,9 @@ def _create_parser() -> argparse.ArgumentParser:
 
     parser_build = subparsers.add_parser("build")
     parser_build.set_defaults(handler=build)
+
+    parser_check_release_commits = subparsers.add_parser("check-release-commits")
+    parser_check_release_commits.set_defaults(handler=check_release_commits)
 
     parser_push_release_tag = subparsers.add_parser("push-release-tag")
     parser_push_release_tag.add_argument("--remote", required=True)
