@@ -1,5 +1,6 @@
 from typer.testing import CliRunner
 
+from diagen import __version__
 from diagen.cli import app
 
 
@@ -14,7 +15,7 @@ class TestCli:
 
         # assert
         assert result.exit_code == 0
-        assert "DiaGen 0.1.0" in result.stdout
+        assert f"DiaGen {__version__}" in result.stdout
 
     def test_show_help(self) -> None:
         # arrange
