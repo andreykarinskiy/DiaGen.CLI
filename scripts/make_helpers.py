@@ -9,6 +9,7 @@ import runpy
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from collections.abc import Sequence
 
 
@@ -19,6 +20,14 @@ def _clean_sys_path() -> None:
 
 def _run(command: Sequence[str]) -> str:
     return subprocess.check_output(command, text=True).strip()
+
+
+def _project_version() -> str:
+    return _run([sys.executable, "-m", "commitizen", "version", "--project"])
+
+
+def _release_tag() -> str:
+    return f"v{_project_version()}"
 
 
 def check_tools(_: argparse.Namespace) -> int:
@@ -90,6 +99,44 @@ def build(_: argparse.Namespace) -> int:
     return 0
 
 
+def push_release_tag(args: argparse.Namespace) -> int:
+    tag = _release_tag()
+    subprocess.check_call(["git", "push", args.remote, tag])
+    return 0
+
+
+def write_release_notes(args: argparse.Namespace) -> int:
+    changelog_path = Path(args.changelog)
+    output_path = Path(args.output)
+    version = args.version
+
+    changelog = changelog_path.read_text(encoding="utf-8")
+    lines = changelog.splitlines()
+
+    header = f"## {version}"
+    start = None
+
+    for index, line in enumerate(lines):
+        if line.startswith(header):
+            start = index
+            break
+
+    if start is None:
+        print(f"Release notes section '{version}' not found in {changelog_path}.")
+        return 1
+
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        if lines[index].startswith("## "):
+            end = index
+            break
+
+    section = "\n".join(lines[start:end]).strip() + "\n"
+    output_path.write_text(section, encoding="utf-8")
+    print(f"Release notes written to {output_path}.")
+    return 0
+
+
 def _create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Makefile helpers.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -110,6 +157,16 @@ def _create_parser() -> argparse.ArgumentParser:
 
     parser_build = subparsers.add_parser("build")
     parser_build.set_defaults(handler=build)
+
+    parser_push_release_tag = subparsers.add_parser("push-release-tag")
+    parser_push_release_tag.add_argument("--remote", required=True)
+    parser_push_release_tag.set_defaults(handler=push_release_tag)
+
+    parser_write_release_notes = subparsers.add_parser("write-release-notes")
+    parser_write_release_notes.add_argument("--version", required=True)
+    parser_write_release_notes.add_argument("--changelog", required=True)
+    parser_write_release_notes.add_argument("--output", required=True)
+    parser_write_release_notes.set_defaults(handler=write_release_notes)
 
     return parser
 

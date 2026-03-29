@@ -33,10 +33,17 @@ jobs:
       - name: Publish to PyPI
         run: echo "PyPI publishing is not configured yet."
 
+      - name: Prepare release notes
+        run: |
+          python scripts/make_helpers.py write-release-notes \
+            --version "${GITHUB_REF_NAME}" \
+            --changelog CHANGELOG.md \
+            --output release-notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          body_path: CHANGELOG.md
+          body_path: release-notes.md
           files: |
             dist/*.tar.gz
             dist/*.whl

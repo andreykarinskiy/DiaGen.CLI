@@ -54,7 +54,8 @@ release: verify
 	$(BUILD)
 	@echo "New version:"
 	@$(CZ) version --project
-	git push $(REMOTE) HEAD --tags
+	git push $(REMOTE) HEAD
+	$(MAKE_HELPERS) push-release-tag --remote "$(REMOTE)"
 
 check-tools:
 	@$(MAKE_HELPERS) check-tools
