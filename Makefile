@@ -51,9 +51,10 @@ verify: check-tools check-branch check-clean check-upstream lint test build
 release: verify
 	@echo "Creating the next release..."
 	$(CZ) bump --changelog --yes
+	$(BUILD)
 	@echo "New version:"
 	@$(CZ) version --project
-	git push $(REMOTE) HEAD --follow-tags
+	git push $(REMOTE) HEAD --tags
 
 check-tools:
 	@$(MAKE_HELPERS) check-tools
