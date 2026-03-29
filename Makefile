@@ -1,24 +1,68 @@
-.PHONY: help release check-branch check-clean
+.DEFAULT_GOAL := help
+RELEASE_BRANCHES ?= main master
+REMOTE ?= origin
+
+VENV_PYTHON_WIN := .venv/Scripts/python.exe
+VENV_PYTHON_POSIX := .venv/bin/python
+
+ifneq ($(wildcard $(VENV_PYTHON_WIN)),)
+PYTHON ?= $(VENV_PYTHON_WIN)
+else ifneq ($(wildcard $(VENV_PYTHON_POSIX)),)
+PYTHON ?= $(VENV_PYTHON_POSIX)
+else
+PYTHON ?= python
+endif
+
+PIP ?= $(PYTHON) -m pip
+PYTEST ?= $(PYTHON) -m pytest
+RUFF ?= $(PYTHON) -m ruff
+CZ ?= $(PYTHON) -m commitizen
+MAKE_HELPERS := $(PYTHON) scripts/make_helpers.py
+BUILD ?= $(MAKE_HELPERS) build
+
+.PHONY: help install-dev lint test build verify release \
+	check-tools check-branch check-clean check-upstream
 
 help:
-	@echo "Доступные команды:"
-	@echo "  make release      - Создать релиз"
+	@echo "Available commands:"
+	@echo "  make install-dev  - Install development dependencies"
+	@echo "  make lint         - Run lint checks"
+	@echo "  make test         - Run tests"
+	@echo "  make build        - Build the package"
+	@echo "  make verify       - Run all release checks"
+	@echo "  make release      - Create a release"
 
-release: check-branch check-clean
-	@echo "Создание очередного релиза..."
-	cz bump --changelog --yes
-	@echo "Новая версия: $$(cz version --project)"
-	git push origin main --follow-tags
+install-dev:
+	$(PIP) install -e .[dev]
+	$(PIP) install build
+
+lint:
+	$(RUFF) check .
+
+test:
+	$(PYTEST) -q
+
+build: check-tools
+	$(BUILD)
+
+verify: check-tools check-branch check-clean check-upstream lint test build
+	@echo "All checks passed."
+
+release: verify
+	@echo "Creating the next release..."
+	$(CZ) bump --changelog --yes
+	@echo "New version:"
+	@$(CZ) version --project
+	git push $(REMOTE) HEAD --follow-tags
+
+check-tools:
+	@$(MAKE_HELPERS) check-tools
 
 check-branch:
-	@current=$$(git branch --show-current); \
-	if [ "$$current" != "main" ]; then \
-		echo "Текущая ветка: '$$current', релиз должен создаваться из ветки 'main'!"; \
-		exit 1; \
-	fi
+	@$(MAKE_HELPERS) check-branch --allowed-branches "$(RELEASE_BRANCHES)"
 
 check-clean:
-	@if [ -n "$$(git status --porcelain)" ]; then \
-		echo "Рабочий каталог содержит незафиксированные изменения!"; \
-		exit 1; \
-	fi
+	@$(MAKE_HELPERS) check-clean
+
+check-upstream:
+	@$(MAKE_HELPERS) check-upstream --remote "$(REMOTE)"
