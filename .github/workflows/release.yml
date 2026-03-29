@@ -5,39 +5,35 @@ on:
     tags:
       - "v*.*.*"
 
-jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
+steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.x'
 
-      - name: Build artifacts
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build
-          python -m build
+          pip install build twine
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Build distributions
+        run: python -m build
+
+      - name: Publish to PyPI
+        # TODO: Потом, когда это будет необходимо.
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
+          body_path: CHANGELOG.md
           files: |
-            dist/*.whl
             dist/*.tar.gz
-          body: |
-            ## Кратко
-            - Обновление DiaGen CLI
-            - Артефакты сборки приложены в секции Assets
-            - Подробности по изменениям добавлены в авто-сгенерированных Release Notes
-
-            ## Установка
-            - Установите нужный артефакт из секции Assets через `pip`
-          generate_release_notes: true
+            dist/*.whl
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
