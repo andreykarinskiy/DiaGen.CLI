@@ -41,12 +41,11 @@ jobs:
             --output release-notes.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: release-notes.md
-          files: |
-            dist/*.tar.gz
-            dist/*.whl
-          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/*.tar.gz \
+            dist/*.whl \
+            --notes-file release-notes.md \
+            --title "${GITHUB_REF_NAME}"
