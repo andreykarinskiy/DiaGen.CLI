@@ -37,25 +37,25 @@ install-dev:
 	$(PIP) install build
 
 lint:
-	$(RUFF) check .
+	@$(RUFF) check .
 
 test:
-	$(PYTEST) -q
+	@$(PYTEST) -q
 
 build: check-tools
-	$(BUILD)
+	@$(BUILD)
 
 verify: check-tools check-branch check-clean check-upstream check-release-commits lint test build
 	@echo "All checks passed."
 
 release: verify
 	@echo "Creating the next release..."
-	$(CZ) bump --changelog --yes
-	$(BUILD)
+	@$(CZ) bump --changelog --yes
+	@$(BUILD)
 	@echo "New version:"
 	@$(CZ) version --project
-	git push $(REMOTE) HEAD
-	$(MAKE_HELPERS) push-release-tag --remote "$(REMOTE)"
+	@git push --quiet $(REMOTE) HEAD
+	@$(MAKE_HELPERS) push-release-tag --remote "$(REMOTE)"
 
 check-tools:
 	@$(MAKE_HELPERS) check-tools

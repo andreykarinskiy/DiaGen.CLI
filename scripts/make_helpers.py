@@ -46,7 +46,6 @@ def check_tools(_: argparse.Namespace) -> int:
         print(f"Missing tools: {', '.join(missing)}")
         return 1
 
-    print("All tools are available.")
     return 0
 
 
@@ -79,7 +78,7 @@ def check_upstream(args: argparse.Namespace) -> int:
     branch = _run(["git", "branch", "--show-current"])
     remote = args.remote
 
-    subprocess.check_call(["git", "fetch", remote, branch, "--tags"])
+    subprocess.check_call(["git", "fetch", "--quiet", remote, branch, "--tags"])
     behind = _run(["git", "rev-list", "--count", f"HEAD..{remote}/{branch}"])
 
     if behind != "0":
@@ -93,15 +92,32 @@ def check_upstream(args: argparse.Namespace) -> int:
 
 
 def build(_: argparse.Namespace) -> int:
-    _clean_sys_path()
-    sys.argv = ["pyproject-build"]
-    runpy.run_module("build", run_name="__main__")
+    command = [
+        sys.executable,
+        "-c",
+        (
+            "import os, runpy, sys; "
+            "cwd = os.getcwd(); "
+            "sys.path = [p for p in sys.path if os.path.abspath(p or os.curdir) != cwd]; "
+            "sys.argv = ['pyproject-build']; "
+            "runpy.run_module('build', run_name='__main__')"
+        ),
+    ]
+    result = subprocess.run(command, text=True, capture_output=True)
+
+    if result.returncode != 0:
+        if result.stdout.strip():
+            print(result.stdout.strip(), file=sys.stderr)
+        if result.stderr.strip():
+            print(result.stderr.strip(), file=sys.stderr)
+        return result.returncode
+
     return 0
 
 
 def check_release_commits(_: argparse.Namespace) -> int:
     try:
-        next_version = subprocess.check_output(
+        subprocess.check_output(
             [sys.executable, "-m", "commitizen", "bump", "--get-next"],
             text=True,
             stderr=subprocess.STDOUT,
@@ -116,13 +132,12 @@ def check_release_commits(_: argparse.Namespace) -> int:
             print(output)
         return error.returncode
 
-    print(f"Next release version: {next_version}")
     return 0
 
 
 def push_release_tag(args: argparse.Namespace) -> int:
     tag = _release_tag()
-    subprocess.check_call(["git", "push", args.remote, tag])
+    subprocess.check_call(["git", "push", "--quiet", args.remote, tag])
     return 0
 
 
