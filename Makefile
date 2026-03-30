@@ -20,7 +20,7 @@ CZ ?= $(PYTHON) -m commitizen
 MAKE_HELPERS := $(PYTHON) scripts/make_helpers.py
 BUILD ?= $(MAKE_HELPERS) build
 
-.PHONY: help install-dev lint test build verify release \
+.PHONY: help install-dev lint test build verify release clean \
 	check-tools check-branch check-clean check-upstream check-release-commits
 
 help:
@@ -31,6 +31,7 @@ help:
 	@echo "  make build        - Build the package"
 	@echo "  make verify       - Run all release checks"
 	@echo "  make release      - Create a release"
+	@echo "  make clean        - Remove build artifacts and caches"
 
 install-dev:
 	$(PIP) install -e .[dev]
@@ -44,6 +45,10 @@ test:
 
 build: check-tools
 	@$(BUILD)
+
+clean:
+	@$(PYTHON) -c "import os, shutil; paths = ['build', 'dist', 'src/diagen.egg-info', '.pytest_cache', '.ruff_cache', '.mypy_cache', 'src/diagen/__pycache__', 'src/diagen/core/__pycache__', 'tests/__pycache__']; [shutil.rmtree(path, ignore_errors=True) for path in paths if os.path.exists(path)]"
+	@echo "Build artifacts and caches removed."
 
 verify: check-tools check-branch check-clean check-upstream check-release-commits lint test build
 	@echo "All checks passed."
