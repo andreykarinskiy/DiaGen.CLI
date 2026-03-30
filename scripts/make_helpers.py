@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import os
-import runpy
 import shutil
 import subprocess
 import sys
